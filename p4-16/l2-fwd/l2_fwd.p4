@@ -46,15 +46,15 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
 
 @name("mac_learn_digest") struct mac_learn_digest {
     bit<48> srcAddr;
-    bit<9>  ingress_port;
+    bit<16>  ingress_port;
 }
 
 control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
-    @name(".forward") action forward(bit<9> port) {
+    @name(".forward") action forward(bit<16> port) {
         standard_metadata.egress_port = port;
     }
     @name(".bcast") action bcast() {
-        standard_metadata.egress_port = 9w100;
+        standard_metadata.egress_port = 16w100;
     }
     @name(".mac_learn") action mac_learn() {
         digest<mac_learn_digest>((bit<32>)1024, { hdr.ethernet.srcAddr, standard_metadata.ingress_port });
