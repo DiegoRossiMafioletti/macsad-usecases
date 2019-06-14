@@ -46,7 +46,7 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
 
 @name("mac_learn_digest") struct mac_learn_digest {
     bit<48> srcAddr;
-    bit<16>  ingress_port;
+    bit<16> ingress_port;
 }
 
 control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
