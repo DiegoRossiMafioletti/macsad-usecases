@@ -41,43 +41,55 @@ struct headers {
     @name(".ethernet") 
     ethernet_t ethernet;
     @name(".ipv4") 
-    ipv4_t     ipv4;
+    ipv4_t ipv4;
 }
 
-parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
-    @name(".parse_ethernet") state parse_ethernet {
+parser ParserImpl(packet_in packet, 
+                    out headers hdr, 
+                    inout metadata meta,
+                    inout standard_metadata_t standard_metadata) {
+    @name(".parse_ethernet") 
+    state parse_ethernet {
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.etherType) {
             16w0x800: parse_ipv4;
             default: accept;
         }
     }
-    @name(".parse_ipv4") state parse_ipv4 {
+    @name(".parse_ipv4") 
+    state parse_ipv4 {
         packet.extract(hdr.ipv4);
         transition accept;
     }
-    @name(".start") state start {
+    @name(".start") 
+    state start {
         transition parse_ethernet;
     }
 }
 
-control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+control egress(inout headers hdr, 
+                inout metadata meta, 
+                inout standard_metadata_t standard_metadata) {
     apply {
     }
 }
 
 control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
-    @name(".fib_hit_nexthop") action fib_hit_nexthop(bit<48> dmac, bit<9> port) {
+    @name(".fib_hit_nexthop") 
+    action fib_hit_nexthop(bit<48> dmac, bit<16> port) {
         hdr.ethernet.dstAddr = dmac;
         standard_metadata.egress_port = port;
         hdr.ipv4.ttl = hdr.ipv4.ttl + 8w255;
     }
-    @name(".on_miss") action on_miss() {
+    @name(".on_miss") 
+    action on_miss() {
     }
-    @name(".rewrite_src_mac") action rewrite_src_mac(bit<48> smac) {
+    @name(".rewrite_src_mac") 
+    action rewrite_src_mac(bit<48> smac) {
         hdr.ethernet.srcAddr = smac;
     }
-    @name(".ipv4_fib_lpm") table ipv4_fib_lpm {
+    @name(".ipv4_fib_lpm") 
+    table ipv4_fib_lpm {
         actions = {
             fib_hit_nexthop;
             on_miss;
@@ -87,7 +99,8 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         }
         size = 512;
     }
-    @name(".sendout") table sendout {
+    @name(".sendout") 
+    table sendout {
         actions = {
             on_miss;
             rewrite_src_mac;
@@ -120,4 +133,9 @@ control computeChecksum(inout headers hdr, inout metadata meta) {
     }
 }
 
-V1Switch(ParserImpl(), verifyChecksum(), ingress(), egress(), computeChecksum(), DeparserImpl()) main;
+V1Switch(ParserImpl(), 
+        verifyChecksum(), 
+        ingress(), 
+        egress(), 
+        computeChecksum(), 
+        DeparserImpl()) main;
