@@ -1,0 +1,82 @@
+{
+    "tables": {
+        "ingress::sendout": {
+            "rules": [
+                {
+                    "name": "v0_to_v1",
+                    "match": {
+                        "standard_metadata.egress_port": {
+                            "value": "v0.1"
+                        }
+                    },
+                    "action": {
+                        "type": "ingress::rewrite_src_mac",
+                        "data": {
+                            "smac": {
+                                "value": "00:15:4d:00:00:00"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "v1_to_v0",
+                    "match": {
+                        "standard_metadata.egress_port": {
+                            "value": "v0.0"
+                        }
+                    },
+                    "action": {
+                        "type": "ingress::rewrite_src_mac",
+                        "data": {
+                            "smac": {
+                                "value": "00:15:4d:00:00:01"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "ingress::ipv4_fib_lpm": {
+            "rules": [
+               {
+                   "name": "v0_to_v1", 
+                   "match": {
+                        "ipv4.dstAddr": {
+                            "value": "10.0.0.2/32"
+                        }
+                    },
+                    "action": {
+                        "type": "ingress::fib_hit_nexthop",
+                        "data": {
+                            "port": {
+                                "value": "v0.1"
+                            },
+                            "dmac": {
+                                "value": "00:15:4d:00:00:01"
+                            }
+                        } 
+                    } 
+               }, 
+               {
+                "name": "v1_to_v0", 
+                "match": {
+                     "ipv4.dstAddr": {
+                         "value": "10.0.0.1/32"
+                     }
+                 },
+                 "action": {
+                     "type": "ingress::fib_hit_nexthop",
+                     "data": {
+                         "port": {
+                             "value": "v0.0"
+                         },
+                         "dmac": {
+                             "value": "00:15:4d:00:00:00"
+                         }
+                     } 
+                 } 
+            }
+         ]
+        }
+    }
+}
